@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script>
+$(document).ready(function(){
+	
+    $.ajax({url: "https://s3-us-west-1.amazonaws.com/hero-engineering-public/interview/fe-code-challenge.json", success: function(result){
+        //$("#div1").html(JSON.stringify(result));
+		var html='';
+		var tags = [];
+		var filterTagsHtml = '', dropdownTagsHtml = '';
+		var selectedFilterArr=[];
+		for(var i=0; i<result.cards.length;i++){
+			var obj = result.cards[i];
+			var tagsHtml = '';
+			for(var j=0; j<obj.tags.length;j++) {
+				var  tag = obj.tags[j];
+				if(tags.indexOf(tag) === -1) {
+					tags.push(tag);
+				}
+				tagsHtml += '<div class="tag">'+tag+'</div>'
+			}
+			html += '<div class="col-md-4 col-xs-6 card"  tags="'+obj.tags.concat()+'">'+
+				'<div class="card-wrapper front">'+
+					'<img class="card-image" src="'+obj.image+'"/>'+
+					'<p class="card-title">'+obj.title.split(':')[1]+'</p>'+
+					'<p class="card-content block-with-text">'+obj.description+'</p>'+
+				'</div>'+
+				'<div class="card-wrapper back">'+
+					'<img class="card-image" src="'+obj.image+'"/>'+
+					'<p class="card-title">'+obj.title.split(':')[0]+'</p>'+
+					'<div class="card-content">'+tagsHtml+'</div>'+
+				'</div>'+
+			'</div>';
+		}
+		dropdownTagsHtml += '<div class="dropdown-select"><span class="selected-tags">Select Tags</span><span class="glyphicon glyphicon-chevron-down dropdown-arrow"></div><div class="dropdown-wrapper">';
+		for(var k=0; k<tags.length;k++) {
+			var  filtertag = tags[k];
+			filterTagsHtml += '<div class="filter">'+filtertag+'</div>';
+			dropdownTagsHtml += '<div class="form-check tag-item">'+
+								'<input class="form-check-input" type="checkbox" value="'+filtertag+'" id="tag_'+k+'">'+
+								'<label for="tag_'+k+'" class="form-check-label tag-text" for="defaultCheck1">'+ filtertag +
+								'</label></div>';
+			
+			
+			//'<div class="tag-item"><input type="checkbox" value="'+filtertag+'"><div class="filter">'+filtertag+'</div></div>';
+		}
+		dropdownTagsHtml += '</div>';
+		$("#filters").append(filterTagsHtml);
+		$("#filter-dropdown").append(dropdownTagsHtml);
+		$("#container").append(html);
+		
+		if($(window).width() < 992) {
+			$(".card").on("click",function(){
+				$(this).toggleClass('flipped');
+			});
+		} else  {
+			$(".card").mouseenter(function(){
+				$(this).toggleClass('flipped');
+			});
+			$(".card").mouseleave(function(){
+				
+			});
+		}
+		$('.tag-item input[type="checkbox"]').change(function(){
+				console.log($(this).val());
+				selectedFilterArr = [];
+				$.each($('.tag-item input[type="checkbox"]:checked'), function(){            
+					selectedFilterArr.push($(this).val());
+				});
+				if(selectedFilterArr.length > 0) {
+					$(".selected-tags").html(selectedFilterArr.toString());
+				} else {
+					$(".selected-tags").html("Select Tags");
+				}
+				applyFilter(selectedFilterArr);
+			});
+		$(".filter").on("click",function(){
+			$(this).toggleClass('active');
+			selectedFilterArr = [];
+			$.each($(".filter.active"), function(index, item){
+				selectedFilterArr.push($(item).html());
+			});
+			applyFilter(selectedFilterArr);
+		});
+		$(".dropdown-select").on("click",function(){
+			$(".dropdown-wrapper").toggleClass('show-dropdown');
+		});
+		$(window).resize(function() {
+			if(selectedFilterArr.length > 0) {
+				if($(window).width() < 992) {
+					$.each($('.tag-item label'), function(index, label){
+						//if()
+					});
+				} else {
+				
+				}
+			}
+			$('.card').show();
+		});
+    }});
+	function applyFilter(selectedFilterArr) {
+		if(selectedFilterArr.length > 0) {
+			$.each($(".card"), function(cardIndex,cardItem){
+				var isCardHasFilters = false;
+				$.each(selectedFilterArr, function(filterIndex,filterItem){
+					var tagsStr = cardItem.getAttribute("tags");
+					if(tagsStr.indexOf(filterItem) === -1){
+						isCardHasFilters = false;
+						return false;
+					} else {
+						isCardHasFilters = true;
+					}
+				});
+				if(isCardHasFilters){
+					$(cardItem).show();
+				}  else{
+					$(cardItem).hide();
+				}
+			});
+		} else {
+			$('.card').show();
+		}
+	}
+});
+</script>
+<style>
+	.row{
+		margin:20px;
+	}
+	.card{
+		padding: 8px;
+		box-sizing: border-box;
+		-webkit-transition: -webkit-transform 1s;
+		-moz-transition: -moz-transform 1s;
+		-o-transition: -o-transform 1s;
+		transition: transform 1s;
+		-webkit-transform-style: preserve-3d;
+		-moz-transform-style: preserve-3d;
+		-o-transform-style: preserve-3d;
+		transform-style: preserve-3d;
+		-webkit-transform-origin: 50% 50%;
+	}
+	
+	.card-wrapper{
+		height: 280px;
+		border: 2px solid #333;
+	}
+	.card-image{
+		width: 100%;
+		height: 100px;		
+	}
+	.card-title{
+		font-size: 18px;
+		font-weight: bold;
+		text-align: center;
+		margin-top: 20px;
+		min-height: 50px;
+	}
+	.back .card-title {
+		min-height: 20px;
+		padding-bottom:0px;
+	}
+	.card-content{
+		margin:10px;
+	}
+	.back .card-content{
+		margin:0px;
+	}
+	.filter {
+		border: 1px solid;
+		padding: 3px;
+		margin: 5px 5px;
+		display: inline-block;
+		font-size: 10px;
+		cursor: pointer;
+	}
+	.tag, .filter.active{
+	    color: #fff;
+		background: #000;
+		padding: 3px;
+		margin: 5px 5px;
+		display: inline-block;
+		font-size: 10px;
+	}
+	
+	.card.flipped .front{display:none;}
+	.card.flipped .back{display:block;}
+	.card:not(.flipped) .front{display:block;}
+	.card:not(.flipped) .back{display:none;}
+	
+	/* styles for '...' */ 
+	.block-with-text {
+	  /* hide text if it more than N lines  */
+	  overflow: hidden;
+	  /* for set '...' in absolute position */
+	  position: relative; 
+	  /* use this value to count block height */
+	  line-height: 1.2em;
+	  /* max-height = line-height (1.2) * lines max number (3) */
+	  max-height: 5.6em; 
+	  /* fix problem when last visible word doesn't adjoin right side  */
+	  text-align: justify;  
+	  /* place for '...' 
+	  margin-right: 1em;*/
+	  
+	  padding-right: 1em;
+	}
+	/* create the ... */
+	.block-with-text:before {
+	  /* points in the end */
+	  content: '...';
+	  /* absolute position */
+	  position: absolute;
+	  /* set position to right bottom corner of block */
+	  right: 0;
+	  bottom: 0;
+	}
+	/* hide ... if we have text, which is less than or equal to max lines */
+	.block-with-text:after {
+	  /* points in the end */
+	  content: '';
+	  /* absolute position */
+	  position: absolute;
+	  /* set position to right bottom corner of text */
+	  right: 0;
+	  /* set width and height */
+	  width: 1em;
+	  height: 1em;
+	  margin-top: 0.2em;
+	  /* bg color = bg color under block */
+	  background: white;
+	}
+
+	.card.flipped .back .card-title, .card .back .card-content{
+		-webkit-transform: rotateY( 180deg );
+		-moz-transform: rotateY( 180deg );
+		-o-transform: rotateY( 180deg );
+		transform: rotateY( 180deg );
+	}
+	.card.flipped{
+		-webkit-transform: rotateY( 180deg );
+		-moz-transform: rotateY( 180deg );
+		-o-transform: rotateY( 180deg );
+		transform: rotateY( 180deg );
+	}
+	
+	.filters {
+		display: block;
+	}
+	.filter-dropdown{
+		display: none;
+		position: relative;
+	}
+	
+	@media screen and (max-width: 991px) {
+		.tag-text{
+			border: none;
+			margin: 0px 5px;
+		}
+		.dropdown-wrapper {
+			width: 100%;
+			display: none;
+			height: 300px;
+			overflow: auto;
+			position: absolute;
+			z-index: 9999;
+			background: white;
+			top: 40px;
+		}
+		.filters {
+			display: none;
+		}
+		.filter-dropdown {
+			display: block;
+		}
+		.tag-item {
+			display: block;
+			margin:0;
+			padding: 3px;
+		}
+		.tag-item input[type="checkbox"] {
+			margin-left: 5px;
+			height: 20px;
+			width: 20px;
+			background: white;
+		}
+		.dropdown-select{
+			width: 100%;
+			height: 40px;
+			border: 1px solid;
+			padding-left: 10px;
+			line-height: 40px;
+		}
+		.dropdown-arrow {
+			float: right;
+			line-height: 40px;
+			font-size: 25px;
+		}
+		.show-dropdown {
+			display: block;
+		}
+		.selected-tags {
+			width: 90%;
+			white-space: nowrap;
+			overflow: hidden;
+			display: inline-block;
+			text-overflow: ellipsis;
+		}
+	}
+	
+</style>
+</head>
+<body>
+	<div id="filters" class="row filters"></div>
+	<div id="filter-dropdown" class="row filter-dropdown"></div>
+	<div id="container" class="row"></div>
+</body>
+</html>
